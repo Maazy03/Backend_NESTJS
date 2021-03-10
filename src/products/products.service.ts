@@ -51,7 +51,7 @@ export class ProductsService {
     async updateProduct(id, name, image, shopNo) {
         try {
 
-            console.log("TRY UPDATE PRODUCT", id, name, image, shopNo)
+            console.log("TRY UPDATE    PRODUCT", id, name, image, shopNo)
             let updatedProduct = await this.productModel.findOne({ _id: id })
             if (!updatedProduct) {
                 throw "Invalid ID"
