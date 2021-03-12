@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './Auth/auth.module'
 // import { ProductsController } from './products/products.controller';
 import { ProductsModule } from './products/products.module';
+import { OrderModule } from './order/order.module';
 
 
 @Module({
@@ -15,7 +16,7 @@ import { ProductsModule } from './products/products.module';
       useFindAndModify: false,
       useCreateIndex: true,
     }), 
-    ProductsModule
+    ProductsModule, OrderModule
     
     ],
   controllers: [AppController],
