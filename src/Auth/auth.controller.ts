@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, Req } from "@nestjs/common";
+import { Request } from "express";
 import { AuthService } from './auth.service'
 
 
@@ -7,15 +8,21 @@ export class AuthController {
 
     constructor(private readonly authService: AuthService) { }
 
-    @Post('/signin')
+    @Post('/signup')
     async signin(
-        @Body('user') user: String,
+        @Body('name') name: String,
         @Body('email') email: String,
         @Body('password') password: String) {
         try {
             console.log("TRY SIGNIN")
-            const authen = this.authService.signin(email, user, password)
-            return authen
+
+            const authen = await this.authService.registerUser(name, email, password)
+            console.log("AUTHEN", authen)
+
+            return {
+                message: "User Registered Succesfully",
+                data: authen
+            }
         }
 
         catch (err) {
@@ -24,5 +31,64 @@ export class AuthController {
         }
     }
 
+    @Post('/login')
+    async login(
+        // @Body('name') name: String,
+        // @Body('email') email: String,
+        // @Body('password') password: String
+        @Req() request: Request) {
+        try {
+            console.log("TRY SIGNIN")
 
+            const authen = await this.authService.loginUser(request)
+            console.log("LOGIN AUTHEN", authen)
+
+            return {
+                message: "User Logged In Succesfully",
+                data: authen
+            }
+        }
+
+        catch (err) {
+            console.log("CATCH SIGNIN", err)
+            throw err
+            // return {
+            //     err
+            // }
+        }
+    }
+
+    
+    @Post('/verifyEmail')
+    async verifyEmail(
+        // @Body('name') name: String,
+        // @Body('email') email: String,
+        // @Body('password') password: String
+        @Req() request: Request) {
+        try {
+            console.log("TRY VERIFY EMAIL")
+            const authen = await this.authService.verifyEmail(request)
+            console.log("LOGIN AUTHEN", authen)
+
+            return authen
+        }
+
+        catch (err) {
+            console.log("CATCH SIGNIN", err)
+            throw err
+            // return {
+            //     err
+            // }
+        }
+    }
+
+    
+
+
+    
+
+       
+
+    
+           
 }

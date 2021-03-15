@@ -9,7 +9,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Observable, of } from 'rxjs';
 import { User } from './auth.model';
-const bcrypt = require('bcrypt')
+// const bcrypt = require('bcrypt')
+import * as bcrypt from 'bcrypt';
+import generateToken from './generateToken';
+import nodemailer from "nodemailer";
+
+
+
+
 @Injectable()
 export class AuthService {
 
@@ -21,94 +28,102 @@ export class AuthService {
     // private readonly mailerService: MailerService
   ) { }
 
-  generateJWT(user: User) {
 
-    return (this.jwtService.signAsync({ user }))
+
+
+  /*************************** SIgn UP ***************************/
+  async  registerUser(name, email, password) {
+    console.log('sssssssssss', name, email, password)
+    try {
+
+      var hash = await bcrypt.hashSync(password, 10);
+      console.log("hash", hash)
+      const newUser = new this.authModel({
+        name,
+        email,
+        password: hash,
+      });
+      // const result = await newUser.save();
+      // console.log(result);
+      return await newUser.save();
+
+    } catch (error) {
+      throw (error)
+
+    }
+
   }
-
-
-  hashPassword(password: String) {
-    return (bcrypt.hash(password, 10))
-  }
-
-  comparePassword(newPassword: String, passwordHash: string) {
-
-    return (bcrypt.compare(newPassword,passwordHash))
-  }
-
 
 
 
 
 
   /*************************** Login ***************************/
-  async signin(user, email, password) {
-    console.log('sssssssssss', user, email, password)
+  async loginUser(request) {
+    console.log('sssssssssss', request.body)
     try {
+      let email = request.body.email
+      let password = request.body.password
+      const user = await this.authModel.findOne({ email })
+      console.log("user data", user)
 
-      const userLogin = new this.authModel({ user, email, password })
+      if (!user) {
+        throw new HttpException('Invalid Email', HttpStatus.BAD_REQUEST)
+      }
 
-      return await userLogin.save()
+      else {
 
+        if (!await bcrypt.compareSync(password, user.password)) {
+          throw new HttpException('Invalid Password', HttpStatus.BAD_REQUEST)
+
+        }
+
+        else {
+          console.log("login complete", user)
+          console.log("Token", generateToken(user._id))
+
+          return {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            token: generateToken(user._id),
+          }
+        }
+        //   return null
+
+        // return user
+      }
     } catch (error) {
-      throw (error)
+      console.log("ERRRR---", error)
+      throw error
 
     }
-    // try {
-    //   try {
-    //     const userExist = await this.authModel
-    //       .findOne({ email })
-    //       .populate('currentPackage')
-    //       .exec();
-    //     if (!userExist) {
-    //       console.log('not exist');
-    //       throw new NotFoundException('User Does not Exist');
-    //     }
-    //     console.log(userExist.hash);
-    //     console.log(bcrypt.compareSync(pass, userExist.hash));
-    //     console.log(!bcrypt.compareSync(pass, userExist.hash));
 
-    //     if (!bcrypt.compareSync(pass, userExist.hash)) {
-    //       console.log('wrong password');
-    //       throw new NotFoundException('Wrong Password');
-    //     }
-    //     const token = jwt.sign({ email: userExist.email }, 'secret', {
-    //       expiresIn: '1h',
-    //     });
+  }
 
-    //     const studentCount = await this.studentModel
-    //       .find({ schoolId: userExist._id, deleted: false })
-    //       .countDocuments();
 
-    //     const user = {
-    //       userExist,
-    //       token,
-    //       studentCount,
-    //     };
-    //     console.log(user);
-    //     return user;
-    //   } catch (error) {
-    //     console.log('LOGIN ERROR', error);
+  /*************************** Verify Email ***************************/
+  async verifyEmail(request) {
+    console.log('sssssssssss', request.body)
+    try {
+      let email = request.body.email
+      const user = await this.authModel.findOne({ email })
+      console.log("user data", user)
 
-    //     throw new NotFoundException(error.message);
-    //   }
-    // } catch (error) {
-    //   console.log('err====', error);
-    //   throw new NotFoundException(error.message);
-    //   // console.log(error);
-    //   // return {
-    //   //   status: 400,
-    //   //   statusCode: 400,
-    //   //   ...error,
-    //   // };
-    //   // throw new NotFoundException(error.message);
-    //   // throw new HttpException(
-    //   //   {
-    //   //     status: HttpStatus.BAD_REQUEST,
-    //   //     error: error.message,
-    //   //   },
-    //   //   HttpStatus.BAD_REQUEST
-    //   // );
-    // }
+      if (!user) {
+        throw new HttpException('Invalid Email', HttpStatus.BAD_REQUEST)
+      }
+
+      console.log("login complete", user)
+ 
+      return new HttpException('Email Verified', HttpStatus.OK)
+
+
+    } catch (error) {
+      console.log("ERRRR---", error)
+      throw error
+
+    }
+
   }
 }
