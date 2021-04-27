@@ -55,8 +55,7 @@ export class NodemailerService {
         html: `
                 <br/>
                 <p>Name: ${invoiceData.name},</p>
-                <p><span>Message: ${invoiceData.message}<b/><span/></p>
-                <p><span>Your Verification Code is: <b> ${invoiceData.code} <b/><span/></p>`,
+                <p><span>Message: ${invoiceData.message}<b/><span/></p>`
       });
       const mail = {
         info: info,
