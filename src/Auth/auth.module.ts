@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { UserSchema } from './auth.model';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { NodemailerService } from 'src/nodemailer/nodemailer.service';
 // import { StudentSchema } from 'src/models/student.schema';
 // import { DriverSchema } from 'src/models/driver.schema';
 
@@ -25,7 +26,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     })
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService,NodemailerService],
   exports:[AuthService]
 })
 export class AuthModule {}

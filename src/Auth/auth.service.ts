@@ -12,7 +12,8 @@ import { User } from './auth.model';
 // const bcrypt = require('bcrypt')
 import * as bcrypt from 'bcrypt';
 import generateToken from './generateToken';
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
+import {NodemailerService} from "../nodemailer/nodemailer.service"
 
 
 
@@ -24,7 +25,9 @@ export class AuthService {
     @InjectModel('User') private readonly authModel: Model<User>,
     // @InjectModel('Student') private readonly studentModel: Model<Student>,
     // @InjectModel('Driver') private readonly driverModel: Model<Driver>,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly mailerService: NodemailerService
+
     // private readonly mailerService: MailerService
   ) { }
 
@@ -36,16 +39,17 @@ export class AuthService {
     console.log('sssssssssss', name, email, password)
     try {
 
-      var hash = await bcrypt.hashSync(password, 10);
-      console.log("hash", hash)
-      const newUser = new this.authModel({
-        name,
-        email,
-        password: hash,
-      });
-      // const result = await newUser.save();
-      // console.log(result);
-      return await newUser.save();
+    const mail = this.mailerService.sendMailToContactUs({name:"MAaz",message:"HELLO"})
+      // var hash = await bcrypt.hashSync(password, 10);
+      // console.log("hash", hash)
+      // const newUser = new this.authModel({
+      //   name,
+      //   email,
+      //   password: hash,
+      // });
+      // // const result = await newUser.save();
+      // // console.log(result);
+      // return await newUser.save();
 
     } catch (error) {
       throw (error)
