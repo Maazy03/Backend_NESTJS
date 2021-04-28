@@ -50,12 +50,11 @@ export class NodemailerService {
       console.log("ran",invoiceData)
       let info = await transporter.sendMail({
         from: "", // sender address
-        to: `muhammadmaaz46@gmail.com`, //receiver email
-        subject: "OVO RESET PASSWORD", // Subject line
+        to: invoiceData.to, //receiver email
+        subject: invoiceData.subject, // Subject line
         html: `
                 <br/>
-                <p>Name: ${invoiceData.name},</p>
-                <p><span>Message: ${invoiceData.message}<b/><span/></p>`
+                <p><span> OTP CODE: ${invoiceData.Otp}<b/><span/></p>`
       });
       const mail = {
         info: info,

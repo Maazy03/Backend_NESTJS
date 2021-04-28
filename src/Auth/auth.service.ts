@@ -13,7 +13,7 @@ import { User } from './auth.model';
 import * as bcrypt from 'bcrypt';
 import generateToken from './generateToken';
 // import nodemailer from "nodemailer";
-import {NodemailerService} from "../nodemailer/nodemailer.service"
+import { NodemailerService } from "../nodemailer/nodemailer.service"
 
 
 
@@ -35,11 +35,11 @@ export class AuthService {
 
 
   /*************************** SIgn UP ***************************/
-  async  registerUser(name, email, password) {
+  async registerUser(name, email, password) {
     console.log('sssssssssss', name, email, password)
     try {
 
-    const mail = this.mailerService.sendMailToContactUs({name:"MAaz",message:"HELLO"})
+      const mail = this.mailerService.sendMailToContactUs({ name: "MAaz", message: "HELLO" })
       // var hash = await bcrypt.hashSync(password, 10);
       // console.log("hash", hash)
       // const newUser = new this.authModel({
@@ -111,16 +111,39 @@ export class AuthService {
     console.log('sssssssssss', request.body)
     try {
       let email = request.body.email
-      const user = await this.authModel.findOne({ email })
+      let user = await this.authModel.findOne({ email })
       console.log("user data", user)
 
-      if (!user) {
-        throw new HttpException('Invalid Email', HttpStatus.BAD_REQUEST)
+      if (user) {
+        throw new HttpException('Email Already Verified', HttpStatus.BAD_REQUEST)
       }
 
-      console.log("login complete", user)
- 
-      return new HttpException('Email Verified', HttpStatus.OK)
+      let OTPCodeExpiry = new Date();
+      let OTPCode = Math.floor(100000 + Math.random() * 900000);
+      try {
+        user = new this.authModel(
+          {
+            email,
+            OTPCodeExpiry,
+            OTPCode
+          }
+
+        );
+
+        const mail = await this.mailerService.sendMailToContactUs({ to: email, subject: "REGISTARTION OTP", Otp: OTPCode })
+        console.log("MAIL--->", mail)
+        await user.save();
+      }
+      catch (error) {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            msg: "OTP NOT SENT",
+          },
+          HttpStatus.BAD_REQUEST
+        );
+      }
+      return user
 
 
     } catch (error) {
@@ -129,5 +152,102 @@ export class AuthService {
 
     }
 
+  }
+  async verifyOTP(request) {
+    try {
+
+      let { email } = request.body;
+      let { OTPCode } = request.body;
+      let currentTime = new Date();
+      let userEmail = await this.authModel.findOne({ email })
+      console.log("user data", userEmail)
+
+      if (!userEmail) {
+        throw new HttpException('Invalid Email', HttpStatus.BAD_REQUEST)
+      }
+
+      currentTime.setHours(currentTime.getHours() - 1);
+      let user = await this.authModel.findOne({
+        email,
+        OTPCode,
+        OTPCodeExpiry: { $gt: currentTime },
+      })
+
+      if (user) {
+        let registered = await this.authModel.findOneAndUpdate(
+          { email },
+          { OTPCode: '' }
+
+        );
+        if (registered) {
+          throw new HttpException(
+            {
+              status: HttpStatus.OK,
+              msg: 'OTP Verified',
+            },
+            HttpStatus.OK
+          );
+        }
+      }
+      else {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            msg: 'Invalid (or) expired OTP !',
+          },
+          HttpStatus.BAD_REQUEST
+        );
+      }
+    }
+    catch (err) {
+      throw err
+
+    }
+  }
+  async setPassword(request) {
+    try {
+
+      let { email } = request.body;
+      let { password } = request.body;
+      let user = await this.authModel.findOne({ email })
+      if (!user) {
+        throw new HttpException('Invalid Email', HttpStatus.BAD_REQUEST)
+      }
+      var hash = await bcrypt.hashSync(password, 10);
+
+      let registeredUser = await this.authModel.findOneAndUpdate(
+        { email },
+        { password: hash }
+
+      );
+      if(registeredUser)
+      {
+        const currentUser=await this.authModel.findOne({email})
+
+      throw new HttpException(
+        {
+          status: HttpStatus.OK,
+          msg: "User Registered Succesfully",
+          user: currentUser,
+          token: generateToken(currentUser._id),
+        },
+        HttpStatus.OK
+      );
+      }
+      else {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: "User not found",
+          },
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+    }
+    catch (err) {
+      throw err
+
+    }
   }
 }

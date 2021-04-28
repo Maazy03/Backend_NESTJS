@@ -81,6 +81,36 @@ export class AuthController {
             // }
         }
     }
+    @Post('/verifyOTP')
+    async verifyOTP(
+         @Req() request: Request) {
+        try {
+            console.log("TRY VERIFY OTP")
+            const authen = await this.authService.verifyOTP(request)
+            console.log("LOGIN AUTHEN", authen)
+            return authen
+        }
+
+        catch (err) {
+            console.log("CATCH SIGNIN", err)
+            throw err
+        }
+    }
+    @Post('/setPassword')
+    async setPassword(
+         @Req() request: Request) {
+        try {
+            console.log("TRY VEROFY PASWORED")
+            const authen = await this.authService.setPassword(request)
+            console.log("LOGIN AUTHEN", authen)
+            return authen
+        }
+
+        catch (err) {
+            console.log("CATCH SIGNIN", err)
+            throw err
+        }
+    }
 
     
 

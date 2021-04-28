@@ -5,15 +5,19 @@ const jwt = require("jsonwebtoken")
 const crypto = require('crypto')
 
 export const UserSchema = new mongoose.Schema({
-    name:{type:String,required:true},
-    email:{type:String,required:true},
-    password:{type:String,required:true}
+    name:String,
+    email:String,
+    password:String,
+    OTPCode: String,
+    OTPCodeExpiry: Date,
 })
 
 export interface User extends Document{
     name:String,
     email:String,
-    password:String
+    password:String,
+    OTPCode: string,
+    OTPCodeExpiry: Date,
 }
 
 //Sign JWT and return

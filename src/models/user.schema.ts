@@ -4,28 +4,17 @@ const Schema = mongoose.Schema;
 
 export const UserSchema = new mongoose.Schema({
     name: {
-         type: String, required: true, unqiue: true 
+         type: String, unqiue: true 
         },
     email: { 
-        type: String, required: true, unique:true 
+        type: String, unique:true 
     },
     hash: {
-         type: String, required: true 
+         type: String,
         },
-    coins:{ 
-        type: Schema.Types.ObjectId,
-        ref: 'Coins',
-    }, 
-    wallet:{
-        type: Schema.Types.ObjectId,
-        ref: 'Wallet',
-    },
-    assets:{
-        type: Schema.Types.ObjectId,
-        ref: 'Assets',
-    }
-
-})
+     OTPcode: String,
+     OTPcodeExpiry: String,
+   })
 
 export interface User extends Document {
     name: String,
@@ -33,6 +22,8 @@ export interface User extends Document {
     hash: String,
     coins:String,
     wallet:String,
-    assets:String
-}
+    assets:String,
+    OTPcode: String,
+    OTPcodeExpiry: String,
+  }
 
