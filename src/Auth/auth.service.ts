@@ -280,11 +280,11 @@ export class AuthService {
         resetPasswordToken,
         resetPasswordExpire
       );
-      const resetUrl = `${req.protocol}://${req.get(
-        "host"
-      )}/auth/reset/${resetToken}`;
+      // const resetUrl = `${req.protocol}://${req.get(
+      //   "host"
+      // )}/auth/reset/${resetToken}`;
       
-      // const resetUrl = `https://kapray.herokuapp.com/auth/reset/${resetToken}`;
+      const resetUrl = `https://kapray.herokuapp.com/auth/reset/${resetToken}`;
 
       const message = `You have received rest password email ${resetUrl}`;
 
