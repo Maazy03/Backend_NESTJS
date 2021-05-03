@@ -7,6 +7,8 @@ import { UserSchema } from './auth.model';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NodemailerService } from 'src/nodemailer/nodemailer.service';
+import { CryptoModule } from "@dreamtexx/nestjs-crypto";
+
 // import { StudentSchema } from 'src/models/student.schema';
 // import { DriverSchema } from 'src/models/driver.schema';
 
@@ -14,16 +16,18 @@ import { NodemailerService } from 'src/nodemailer/nodemailer.service';
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
-    ]),
-    JwtModule.registerAsync({ 
-      imports:[ConfigModule],
-      inject:[ConfigService],
-      useFactory:async(ConfigService:ConfigService)=>({
-        secret:ConfigService.get('JWT_SECRET'),
-        signOptions:{expiresIn:'30d'}
-      })
-
-    })
+    ]), 
+     JwtModule.register({
+      secret: 'secret',
+      signOptions: { expiresIn: '1d' }
+    }),
+    CryptoModule.forRoot({
+      pepper: 'SomeSecretString', //required
+      saltLength: 16, //optional, default 16
+      keyLength: 64, //optional, default 64
+      delimiter: ':', //optional, default ':'
+    }),
+  
   ],
   controllers: [AuthController],
   providers: [AuthService,NodemailerService],

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req } from "@nestjs/common";
+import { Body, Controller, Post, Req,Put } from "@nestjs/common";
 import { Request } from "express";
 import { AuthService } from './auth.service'
 
@@ -74,7 +74,7 @@ export class AuthController {
         }
 
         catch (err) {
-            console.log("CATCH SIGNIN", err)
+            console.log("CATCH VERIFY EMAIL", err)
             throw err
             // return {
             //     err
@@ -92,7 +92,7 @@ export class AuthController {
         }
 
         catch (err) {
-            console.log("CATCH SIGNIN", err)
+            console.log("CATCH OTP", err)
             throw err
         }
     }
@@ -100,17 +100,50 @@ export class AuthController {
     async setPassword(
          @Req() request: Request) {
         try {
-            console.log("TRY VEROFY PASWORED")
+            console.log("TRY SET PASWORED")
             const authen = await this.authService.setPassword(request)
             console.log("LOGIN AUTHEN", authen)
             return authen
         }
 
         catch (err) {
-            console.log("CATCH SIGNIN", err)
+            console.log("CATCH SET PASSWORD", err)
             throw err
         }
     }
+    
+    @Post('/forgetPassword')
+    async forgetPassword(
+         @Req() request: Request) {
+        try {
+            console.log("TRY FORGET PASSWORD")
+            const authen = await this.authService.forgetPassword(request)
+            console.log("LOGIN AUTHEN", authen)
+            return authen
+        }
+
+        catch (err) {
+            console.log("CATCH FORGET PASSWORD", err)
+            throw err
+        }
+    }
+    
+    @Put('/reset/:resettoken')
+    async resetPassword(
+         @Req() request: Request) {
+        try {
+            console.log("TRY RESET PASSOWRD")
+            const authen = await this.authService.resetPassword(request)
+            console.log("LOGIN AUTHEN", authen)
+            return authen
+        }
+
+        catch (err) {
+            console.log("CATCH RESET PASSOWRD", err)
+            throw err
+        }
+    }
+    
 
     
 

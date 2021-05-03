@@ -54,7 +54,8 @@ export class NodemailerService {
         subject: invoiceData.subject, // Subject line
         html: `
                 <br/>
-                <p><span> OTP CODE: ${invoiceData.Otp}<b/><span/></p>`
+                <p><span> OTP CODE: ${invoiceData.Otp}<b/><span/></p>
+                <p><span>Your Verification Code is: <b> ${invoiceData.url} <b/><span/></p>`
       });
       const mail = {
         info: info,

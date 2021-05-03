@@ -10,6 +10,8 @@ export const UserSchema = new mongoose.Schema({
     password:String,
     OTPCode: String,
     OTPCodeExpiry: Date,
+    resetPasswordToken:String,
+    resetPasswordExpire:Number
 })
 
 export interface User extends Document{
@@ -18,6 +20,9 @@ export interface User extends Document{
     password:String,
     OTPCode: string,
     OTPCodeExpiry: Date,
+    resetPasswordToken:String,
+    resetPasswordExpire:Number
+
 }
 
 //Sign JWT and return

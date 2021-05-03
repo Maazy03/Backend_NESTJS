@@ -1,9 +1,11 @@
 import * as jwt from 'jsonwebtoken'
 import {jwtConstants} from './user.constants'
-// import dotenv from 'dotenv'
+require("dotenv").config();
+
 const generateToken = (email) => {
-    return  jwt.sign({ email }, jwtConstants.secret, {
-        expiresIn: '30d'
+    console.log("JWT HERE")
+    return  jwt.sign({ email }, process.env.JWT_SECRET, {
+        expiresIn: '60d'
     })
 }
 

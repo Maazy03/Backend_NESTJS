@@ -14,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import generateToken from './generateToken';
 // import nodemailer from "nodemailer";
 import { NodemailerService } from "../nodemailer/nodemailer.service"
+import * as crypto from "crypto";
 
 
 
@@ -222,14 +223,17 @@ export class AuthService {
       );
       if(registeredUser)
       {
-        const currentUser=await this.authModel.findOne({email})
 
+        const currentUser=await this.authModel.findOne({email})
+          console.log("currentUSer SP",currentUser)
+        const jwt = generateToken(currentUser._id);
+              
       throw new HttpException(
         {
           status: HttpStatus.OK,
           msg: "User Registered Succesfully",
           user: currentUser,
-          token: generateToken(currentUser._id),
+          token: jwt,
         },
         HttpStatus.OK
       );
@@ -250,4 +254,109 @@ export class AuthService {
 
     }
   }
+
+  async forgetPassword(req) {
+    try {
+      console.log("run");
+      let { email } = req.body;
+      req.body.email = email.toLowerCase();
+      const getUser = await this.authModel.findOne({ email: email });
+      if (getUser == null) throw "account not registered with this email";
+      console.log("run2")
+      const jwt = generateToken(getUser._id);
+      console.log("run2")
+
+      console.log("TOKEN", jwt);
+
+      const resetToken = crypto.randomBytes(20).toString("hex");
+      const resetPasswordToken = crypto
+        .createHash("SHA256")
+        .update(resetToken)
+        .digest("hex");
+      const resetPasswordExpire = Date.now() + 30 * 60 * 1000;
+      console.log(
+        "TOKENS",
+        resetToken,
+        resetPasswordToken,
+        resetPasswordExpire
+      );
+      const resetUrl = `${req.protocol}://${req.get(
+        "host"
+      )}/auth/reset/${resetToken}`;
+      
+      // const resetUrl = `https://kapray.herokuapp.com/auth/reset/${resetToken}`;
+
+      const message = `You have received rest password email ${resetUrl}`;
+
+      try {
+        const mail = await this.mailerService.sendMailToContactUs({
+          to: email,
+          subject: "RESET PASSWORD TOKEN",
+          url:message
+        });
+        await getUser.save({ validateBeforeSave: false });
+        getUser.password = undefined;
+        getUser.resetPasswordToken = resetPasswordToken;
+        getUser.resetPasswordExpire = resetPasswordExpire;
+
+        await getUser.save();
+      } catch (error) {
+        console.log("no1", error);
+        getUser.resetPasswordToken = undefined;
+        getUser.resetPasswordExpire = undefined;
+        await getUser.save({ validateBeforeSave: false });
+        throw "email could not be sent";
+      }
+      console.log("USER", getUser);
+      return getUser;
+    } catch (e) {
+      console.log("check error", e);
+
+      throw e;
+    }
+  }
+
+  async resetPassword(req) {
+    try {
+      console.log("RESET PASSWORD", req.params);
+      const resToken=req.params.resettoken
+      const resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(resToken)
+        .digest("hex");
+
+      let { newPassword }=req.body
+
+      const user = await this.authModel.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() },
+      });
+      console.log("TOKEN USER", user);
+      if (!user) {
+        throw "Invalid Token";
+      }
+      var hash = await bcrypt.hashSync(newPassword, 10);
+      user.password = hash;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+
+      console.log("USER---:", user);
+      const jwt = generateToken(user._id);
+      console.log("JWT RESET", jwt);
+      return {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        // contacts: user.contacts,
+        token: jwt,
+      };
+    } catch (e) {
+      console.log("check error", e);
+
+      throw e;
+    }
+  }
+  
+
 }
