@@ -354,7 +354,7 @@ export class AuthService {
       const jwt = generateToken(user._id);
       var hash = await bcrypt.hashSync(newPassword, 10);
       user.password = hash
-      // await user.save()
+      await user.save({ validateBeforeSave: false });
       return {
         data:user,
         token:jwt
