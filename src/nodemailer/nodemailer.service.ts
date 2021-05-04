@@ -10,11 +10,9 @@ let transporter = nodemailer.createTransport({
   secure: false,
   auth: {
     user: 'muhammadmaaz46@gmail.com',
-    pass: "KARACHI123"
+    pass: "lpzbjctcudqtbtma"
 },
-  tls: {
-    rejectUnauthorized: false,
-  },
+requireTLS: true,
 });
 
 @Injectable()
