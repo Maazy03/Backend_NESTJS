@@ -1,5 +1,5 @@
-import { Body, Controller, Post, Req,Put } from "@nestjs/common";
-import { Request } from "express";
+import { Body, Controller, Post, Req, Put, Res } from "@nestjs/common";
+import { Request, Response } from "express";
 import { AuthService } from './auth.service'
 
 
@@ -9,149 +9,202 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('/signup')
-    async signin(
-        @Body('name') name: String,
-        @Body('email') email: String,
-        @Body('password') password: String) {
-        try {
-            console.log("TRY SIGNIN")
-
-            const authen = await this.authService.registerUser(name, email, password)
-            console.log("AUTHEN", authen)
-
-            return {
-                message: "User Registered Succesfully",
-                data: authen
+    async  signUp(@Req() request: Request, @Res() res: Response) {
+            try {
+                console.log("SIGN UP")
+                const authen = await this.authService.signUp(request)
+                console.log("SIGNUP AUTHEN", authen)
+                res.status(200).send({
+                    responseCode: 200,
+                    responseMessage: "User Registered successfully",
+                    result: authen,
+                });
             }
-        }
-
-        catch (err) {
-            console.log("CATCH SIGNIN")
-            throw err
-        }
+    
+            catch (err) {
+                console.log("SIGN UP", err)
+                res.status(400).send({
+                    responseCode: 400,
+                    responseMessage: "Invalid Credentials",
+                    result: err,
+                });
+            }
     }
 
     @Post('/login')
     async login(
-        // @Body('name') name: String,
-        // @Body('email') email: String,
-        // @Body('password') password: String
-        @Req() request: Request) {
-        try {
-            console.log("TRY SIGNIN")
-
-            const authen = await this.authService.loginUser(request)
-            console.log("LOGIN AUTHEN", authen)
-
-            return {
-                message: "User Logged In Succesfully",
-                data: authen
+        @Req() request: Request,@Res() res: Response) {
+            try {
+                console.log("LOGIN TRY")
+                const authen = await this.authService.login(request)
+                console.log("LOGIN AUTHEN", authen)
+                res.status(200).send({
+                    responseCode: 200,
+                    responseMessage: "User Logged in Succesfullys",
+                    result: authen,
+                });
             }
-        }
-
-        catch (err) {
-            console.log("CATCH SIGNIN", err)
-            throw err
-            // return {
-            //     err
-            // }
-        }
+    
+            catch (err) {
+                console.log("LOGIN CATCH", err)
+                res.status(400).send({
+                    responseCode: 400,
+                    responseMessage: "Invalid Credentials",
+                    result: err,
+                });
+            }
     }
 
-    
+
     @Post('/verifyEmail')
     async verifyEmail(
-        // @Body('name') name: String,
-        // @Body('email') email: String,
-        // @Body('password') password: String
-        @Req() request: Request) {
-        try {
-            console.log("TRY VERIFY EMAIL")
-            const authen = await this.authService.verifyEmail(request)
-            console.log("LOGIN AUTHEN", authen)
-
-            return authen
-        }
-
-        catch (err) {
-            console.log("CATCH VERIFY EMAIL", err)
-            throw err
-            // return {
-            //     err
-            // }
-        }
+        @Req() request: Request,@Res() res: Response) {
+            try {
+                console.log("VERIFY EMAIL TRY")
+                const authen = await this.authService.verifyEmail(request)
+                console.log("LOGIN AUTHEN", authen)
+                res.status(200).send({
+                    responseCode: 200,
+                    responseMessage: "An OTP have been sent to your email for registration",
+                    result: authen,
+                });
+            }
+    
+            catch (err) {
+                console.log("VERIFY EMAIL CATCH", err)
+                res.status(400).send({
+                    responseCode: 400,
+                    responseMessage: "Email not verified",
+                    result: err,
+                });
+            }
     }
     @Post('/verifyOTP')
     async verifyOTP(
-         @Req() request: Request) {
-        try {
-            console.log("TRY VERIFY OTP")
-            const authen = await this.authService.verifyOTP(request)
-            console.log("LOGIN AUTHEN", authen)
-            return authen
-        }
-
-        catch (err) {
-            console.log("CATCH OTP", err)
-            throw err
-        }
+        @Req() request: Request,@Res() res: Response) {
+            try {
+                console.log("VERIFY OTP TRY")
+                const authen = await this.authService.verifyOTP(request)
+                console.log("LOGIN AUTHEN", authen)
+                res.status(200).send({
+                    responseCode: 200,
+                    responseMessage: "Password succesfully set",
+                    result: authen,
+                });
+            }
+    
+            catch (err) {
+                console.log("VERIFY OTP CATCH", err)
+                res.status(400).send({
+                    responseCode: 400,
+                    responseMessage: "Password not successfly set",
+                    result: err,
+                });
+            }
     }
     @Post('/setPassword')
     async setPassword(
-         @Req() request: Request) {
-        try {
-            console.log("TRY SET PASWORED")
-            const authen = await this.authService.setPassword(request)
-            console.log("LOGIN AUTHEN", authen)
-            return authen
-        }
-
-        catch (err) {
-            console.log("CATCH SET PASSWORD", err)
-            throw err
-        }
-    }
+        @Req() request: Request,@Res() res: Response) {
+            try {
+                console.log("SET PASSOWRD TRY")
+                const authen = await this.authService.setPassword(request)
+                console.log("LOGIN AUTHEN", authen)
+                res.status(200).send({
+                    responseCode: 200,
+                    responseMessage: "Password succesfully set",
+                    result: authen,
+                });
+            }
     
+            catch (err) {
+                console.log("SET PASSOWRD CATCH", err)
+                res.status(400).send({
+                    responseCode: 400,
+                    responseMessage: "Password not successflu set",
+                    result: err,
+                });
+            }
+    }
+
     @Post('/forgetPassword')
     async forgetPassword(
-         @Req() request: Request) {
-        try {
-            console.log("TRY FORGET PASSWORD")
-            const authen = await this.authService.forgetPassword(request)
-            console.log("LOGIN AUTHEN", authen)
-            return authen
-        }
-
-        catch (err) {
-            console.log("CATCH FORGET PASSWORD", err)
-            throw err
-        }
-    }
+        @Req() request: Request,@Res() res: Response) {
+            try {
+                console.log("FORGET PASSOWRD TRY")
+                const authen = await this.authService.forgetPassword(request)
+                console.log("LOGIN AUTHEN", authen)
+                res.status(200).send({
+                    responseCode: 200,
+                    responseMessage: "Email sent succesfully",
+                    result: authen,
+                });
+            }
     
+            catch (err) {
+                console.log("FORGET PASSOWRD CATCH", err)
+                res.status(400).send({
+                    responseCode: 400,
+                    responseMessage: "Password not changed",
+                    result: err,
+                });
+            }
+    }
+
     @Put('/reset/:resettoken')
     async resetPassword(
-         @Req() request: Request) {
+        @Req() request: Request,@Res() res: Response) {
+            try {
+                console.log("RESET PASSOWRD TRY")
+                const authen = await this.authService.resetPassword(request)
+                console.log("LOGIN AUTHEN", authen)
+                res.status(200).send({
+                    responseCode: 200,
+                    responseMessage: "Password succesfully changed",
+                    result: authen,
+                });
+            }
+    
+            catch (err) {
+                console.log("RESET PASSOWRD CATCH", err)
+                res.status(400).send({
+                    responseCode: 400,
+                    responseMessage: "Password not changed",
+                    result: err,
+                });
+            }
+    }
+    @Put('/updatePassword')
+    async updatePassword(
+        @Req() request: Request, @Res() res: Response) {
         try {
-            console.log("TRY RESET PASSOWRD")
-            const authen = await this.authService.resetPassword(request)
+            console.log("UPDATE PASSOWRD TRY")
+            const authen = await this.authService.updatePassword(request)
             console.log("LOGIN AUTHEN", authen)
-            return authen
+            res.status(200).send({
+                responseCode: 200,
+                responseMessage: "Password updated",
+                result: authen,
+            });
         }
 
         catch (err) {
-            console.log("CATCH RESET PASSOWRD", err)
-            throw err
+            console.log("UPDATE PASSOWRD CATCH", err)
+            res.status(400).send({
+                responseCode: 400,
+                responseMessage: "Password not updated",
+                result: err,
+            });
         }
     }
-    
-
-    
 
 
-    
 
-       
 
-    
-           
+
+
+
+
+
+
+
 }

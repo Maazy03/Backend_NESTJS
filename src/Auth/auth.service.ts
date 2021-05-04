@@ -36,21 +36,26 @@ export class AuthService {
 
 
   /*************************** SIgn UP ***************************/
-  async registerUser(name, email, password) {
-    console.log('sssssssssss', name, email, password)
+  async signUp(request) {
     try {
+      console.log("SIGNUP")
+      let { email }=request.body
+      let user = await this.authModel.findOne({ email })
+      console.log("user data", user)
 
-      const mail = this.mailerService.sendMailToContactUs({ name: "MAaz", message: "HELLO" })
-      // var hash = await bcrypt.hashSync(password, 10);
-      // console.log("hash", hash)
-      // const newUser = new this.authModel({
-      //   name,
-      //   email,
-      //   password: hash,
-      // });
-      // // const result = await newUser.save();
-      // // console.log(result);
-      // return await newUser.save();
+      if (user) {
+        throw 'Email Already Verified'
+      }
+      console.log("ENAI",email)
+      var hash = await bcrypt.hashSync(request.body.password, 10);
+      console.log("hash", hash)
+      const newUser = new this.authModel({
+        email:email,
+        password: hash,
+      });
+      const result = await newUser.save();
+      console.log(result);
+      return result;
 
     } catch (error) {
       throw (error)
@@ -64,7 +69,7 @@ export class AuthService {
 
 
   /*************************** Login ***************************/
-  async loginUser(request) {
+  async login(request) {
     console.log('sssssssssss', request.body)
     try {
       let email = request.body.email
@@ -73,13 +78,13 @@ export class AuthService {
       console.log("user data", user)
 
       if (!user) {
-        throw new HttpException('Invalid Email', HttpStatus.BAD_REQUEST)
+        throw 'Invalid Email'
       }
 
       else {
 
-        if (!await bcrypt.compareSync(password, user.password)) {
-          throw new HttpException('Invalid Password', HttpStatus.BAD_REQUEST)
+        if (!await bcrypt.compare(password, user.password)) {
+          throw 'Invalid Password'
 
         }
 
@@ -116,7 +121,7 @@ export class AuthService {
       console.log("user data", user)
 
       if (user) {
-        throw new HttpException('Email Already Verified', HttpStatus.BAD_REQUEST)
+        throw 'Email Already Verified'
       }
 
       let OTPCodeExpiry = new Date();
@@ -136,13 +141,7 @@ export class AuthService {
         await user.save();
       }
       catch (error) {
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            msg: "OTP NOT SENT",
-          },
-          HttpStatus.BAD_REQUEST
-        );
+        throw error
       }
       return user
 
@@ -164,7 +163,7 @@ export class AuthService {
       console.log("user data", userEmail)
 
       if (!userEmail) {
-        throw new HttpException('Invalid Email', HttpStatus.BAD_REQUEST)
+        throw 'Invalid Email'
       }
 
       currentTime.setHours(currentTime.getHours() - 1);
@@ -181,23 +180,12 @@ export class AuthService {
 
         );
         if (registered) {
-          throw new HttpException(
-            {
-              status: HttpStatus.OK,
-              msg: 'OTP Verified',
-            },
-            HttpStatus.OK
-          );
+        return "OTP Verified"
         }
+
       }
       else {
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            msg: 'Invalid (or) expired OTP !',
-          },
-          HttpStatus.BAD_REQUEST
-        );
+        throw "Invalid OTP"
       }
     }
     catch (err) {
@@ -212,7 +200,7 @@ export class AuthService {
       let { password } = request.body;
       let user = await this.authModel.findOne({ email })
       if (!user) {
-        throw new HttpException('Invalid Email', HttpStatus.BAD_REQUEST)
+        throw 'Invalid Email'
       }
       var hash = await bcrypt.hashSync(password, 10);
 
@@ -221,31 +209,20 @@ export class AuthService {
         { password: hash }
 
       );
-      if(registeredUser)
-      {
+      if (registeredUser) {
 
-        const currentUser=await this.authModel.findOne({email})
-          console.log("currentUSer SP",currentUser)
+        const currentUser = await this.authModel.findOne({ email })
+        console.log("currentUSer SP", currentUser)
         const jwt = generateToken(currentUser._id);
-              
-      throw new HttpException(
-        {
-          status: HttpStatus.OK,
-          msg: "User Registered Succesfully",
-          user: currentUser,
-          token: jwt,
-        },
-        HttpStatus.OK
-      );
+
+        return  {
+            user: currentUser,
+            token: jwt,
+          }
+      
       }
       else {
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            error: "User not found",
-          },
-          HttpStatus.BAD_REQUEST
-        );
+        throw "User not found"
       }
 
     }
@@ -283,7 +260,7 @@ export class AuthService {
       // const resetUrl = `${req.protocol}://${req.get(
       //   "host"
       // )}/auth/reset/${resetToken}`;
-      
+
       const resetUrl = `https://kapray.herokuapp.com/auth/reset/${resetToken}`;
 
       const message = `You have received rest password email ${resetUrl}`;
@@ -292,7 +269,7 @@ export class AuthService {
         const mail = await this.mailerService.sendMailToContactUs({
           to: email,
           subject: "RESET PASSWORD TOKEN",
-          url:message
+          url: message
         });
         await getUser.save({ validateBeforeSave: false });
         getUser.password = undefined;
@@ -319,13 +296,13 @@ export class AuthService {
   async resetPassword(req) {
     try {
       console.log("RESET PASSWORD", req.params);
-      const resToken=req.params.resettoken
+      const resToken = req.params.resettoken
       const resetPasswordToken = crypto
         .createHash("sha256")
         .update(resToken)
         .digest("hex");
 
-      let { newPassword }=req.body
+      let { newPassword } = req.body
 
       const user = await this.authModel.findOne({
         resetPasswordToken,
@@ -357,6 +334,38 @@ export class AuthService {
       throw e;
     }
   }
-  
+  async updatePassword(req) {
+    try {
+      console.log("UPDATE PASSWORD", req.body.oldPassword);
+      let { newPassword } = req.body
+      let { oldPassword } = req.body
+      let { email } = req.body
+
+      const user = await this.authModel.findOne({
+        email
+      });
+      console.log("UPDATE PASSWORD USER", user);
+      if (!user) {
+        throw "Invalid EMAIL";
+      }
+      if (!await bcrypt.compare(oldPassword, user.password)) {
+        throw "incorrect Old password"
+      }
+      const jwt = generateToken(user._id);
+      var hash = await bcrypt.hashSync(newPassword, 10);
+      user.password = hash
+      // await user.save()
+      return {
+        data:user,
+        token:jwt
+
+      }
+
+    } catch (e) {
+      console.log("check error", e);
+      throw e;
+    }
+  }
+
 
 }
